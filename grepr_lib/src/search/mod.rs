@@ -1,3 +1,5 @@
+pub mod bm;
+
 pub struct Search<'a>{
     text: &'a [u8],
     pattern: &'a [u8]
