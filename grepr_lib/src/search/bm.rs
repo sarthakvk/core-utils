@@ -49,7 +49,7 @@ impl BoyerMoore {
         delta1
     }
 
-    // pub fn preprocess_delta2(query: &[u8]){
-    //     todo!();
-    // }
+    fn preprocess_delta2(query: &[u8]){
+        todo!();
+    }
 }

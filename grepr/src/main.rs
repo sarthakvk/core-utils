@@ -1,7 +1,9 @@
+use colored::Colorize;
+
 use std::{
     env,
     fs::File,
-    io::{self, Read},
+    io::{self, Read, Write},
 };
 
 use grepr_lib::search::bm::BoyerMoore;
@@ -9,8 +11,8 @@ use grepr_lib::search::bm::BoyerMoore;
 fn main() {
     match grepr() {
         Ok(idx) => match idx {
-            Some(idx) => println!("Found at index: {}", idx),
             None => println!("Not Found"),
+            _ => (),
         },
         Err(err) => println!("{}", err),
     }
@@ -24,10 +26,26 @@ fn grepr() -> Result<Option<usize>, String> {
         Ok((val1, val2)) => {
             content = val1.as_bytes();
             query = val2.as_bytes();
-            Ok(BoyerMoore::find_match(&content, &query))
-        }
+            let idx = BoyerMoore::find_match(&content, &query);
+            if let Some(idx) = idx {
+                print_result(&content, idx, query.len());
+            }
+            Ok(idx)
+        },
         Err(err) => Err(err),
     }
+}
+
+fn print_result(content: &[u8], found_at: usize, query_len: usize){
+    let stdout = io::stdout();
+    let mut handle = stdout.lock();
+    let before = std::str::from_utf8(&content[0..found_at]).unwrap();
+    let mat = std::str::from_utf8(&content[found_at..found_at+query_len]).unwrap();
+    let after = std::str::from_utf8(&content[found_at+query_len..]).unwrap();
+    
+    let _ = write!(&mut handle,"{}{}{}", before, mat.blue(), after);
+
+    handle.flush().unwrap();
 }
 
 // Returns tuple with (Content, Query)
