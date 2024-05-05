@@ -1,9 +1,10 @@
+mod io;
 mod cli;
 mod bm;
 mod regex_match;
 
 use clap::Parser;
-use cli::read_lines;
+use io::read_lines;
 use regex_match::regex_search;
 use bm::bm_search;
 

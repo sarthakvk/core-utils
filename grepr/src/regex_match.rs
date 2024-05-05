@@ -3,7 +3,7 @@ use std::io::Write;
 use regex::Regex;
 
 use std::io;
-use crate::cli::{write_result, InputLinesIterator};
+use crate::io::{write_result, InputLinesIterator};
 
 
 pub fn match_regex_pat(pat: &Regex, hay: &str) -> Vec<usize> {

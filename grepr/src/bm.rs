@@ -4,7 +4,7 @@ pub struct BoyerMoore;
 
 use std::io;
 use std::io::Write;
-use crate::cli::{write_result, InputLinesIterator};
+use crate::io::{write_result, InputLinesIterator};
 
 const MAX_U8: usize = u8::MAX as usize;
 
