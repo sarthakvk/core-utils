@@ -3,17 +3,22 @@ mod bm;
 mod regex_match;
 
 use clap::Parser;
-use cli::{bm_search, regex_search};
+use cli::read_lines;
+use regex_match::regex_search;
+use bm::bm_search;
+
 
 fn main() {
     let args = cli::Args::parse();
 
-    let (exact, patt, path) = (args.exact, args.pattern.as_ref(), args.input.as_ref());
+    let (exact, pat, file) = (args.exact, args.pattern.as_ref(), args.file.as_deref());
+
+    let line_iter = read_lines(file);
 
     if exact {
-        bm_search(patt, path);
+        bm_search(pat, line_iter);
     } else {
-        regex_search(patt, path)
+        regex_search(pat, line_iter)
     }
 }
 

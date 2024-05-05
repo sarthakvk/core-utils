@@ -2,6 +2,10 @@
 
 pub struct BoyerMoore;
 
+use std::io;
+use std::io::Write;
+use crate::cli::{write_result, InputLinesIterator};
+
 const MAX_U8: usize = u8::MAX as usize;
 
 impl BoyerMoore {
@@ -59,6 +63,31 @@ impl BoyerMoore {
     }
 }
 
+pub fn bm_search(pat: &str, mut lines_iter: InputLinesIterator) {
+    let pat_bytes = pat.as_bytes();
+    let mut line_num = 0_usize;
+    let match_len = pat.len();
+
+    let stdout = io::stdout();
+    let mut handle = stdout.lock();
+
+    while let Some(line) = lines_iter.next() {
+        match line {
+            Ok(line) => {
+                let inp_bytes = line.as_bytes();
+                let res = BoyerMoore::find_match(inp_bytes, pat_bytes);
+                
+                if res.len() != 0 {
+                    write_result(&mut handle, inp_bytes, &res, match_len, Some(line_num));
+                }
+                line_num += 1;
+            },
+            Err(err) => panic!("{}", err)            
+        }
+    }
+
+    handle.flush().unwrap();
+}
 
 #[cfg(test)]
 mod tests {

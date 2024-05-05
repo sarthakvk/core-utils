@@ -2,12 +2,24 @@ use clap::{command, Parser};
 use colored::Colorize;
 
 use std::{
-    fs::File, io::{self, BufRead, BufReader, Lines, StdoutLock, Write}
+    fs::File, io::{self, BufRead, BufReader, Lines, StdinLock, StdoutLock, Write}
 };
 
-use crate::bm::BoyerMoore;
-use crate::regex_match::match_regex_pat;
-use regex::Regex;
+pub enum InputLinesIterator{
+    FileLines(Lines<BufReader<File>>),
+    StdioLines(Lines<StdinLock<'static>>)
+}
+
+impl Iterator for InputLinesIterator {
+    type Item = Result<String, io::Error>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self {
+            Self::FileLines(iter) => iter.next(),
+            Self::StdioLines(iter) => iter.next()   
+        }
+    }
+}
 
 
 #[derive(Parser)]
@@ -17,67 +29,14 @@ pub struct Args{
     pub pattern: String,
     
     /// input file path
-    pub input: String,
+    pub file: Option<String>,
 
     /// Use exact match, without regular experessions
     #[arg(short, long)]
     pub exact: bool
 }
 
-pub fn regex_search(pat: &str, path: &str) {
-
-    let mut hay = read_lines_from_file(path);
-    let re_pat = Regex::new(pat).unwrap();
-    let mut line_num = 0_usize;
-    let match_len = pat.len();
-
-    let stdout = io::stdout();
-    let mut handle = stdout.lock();
-    
-    while let Some(line) = hay.next(){
-        match line {
-            Ok(line) => {
-                let res = match_regex_pat(&re_pat, &line);
-            
-                if res.len() != 0{
-                    write_result(&mut handle, line.as_bytes(), &res, match_len, Some(line_num));
-                }
-                line_num += 1;
-            },
-            Err(err) => panic!("{}", err)
-        }
-    }
-    handle.flush().unwrap();
-}
-
-pub fn bm_search(patt: &str, input: &str) {
-    let patt_bytes = patt.as_bytes();
-    let mut inp_str = read_lines_from_file(input);
-    let mut line_num = 0_usize;
-    let match_len = patt.len();
-
-    let stdout = io::stdout();
-    let mut handle = stdout.lock();
-
-    while let Some(line) = inp_str.next() {
-        match line {
-            Ok(line) => {
-                let inp_bytes = line.as_bytes();
-                let res = BoyerMoore::find_match(inp_bytes, patt_bytes);
-                
-                if res.len() != 0 {
-                    write_result(&mut handle, inp_bytes, &res, match_len, Some(line_num));
-                }
-                line_num += 1;
-            },
-            Err(err) => panic!("{}", err)            
-        }
-    }
-
-    handle.flush().unwrap();
-}
-
-fn write_result(handle: &mut StdoutLock<'static>, content: &[u8], matches: &Vec<usize>, match_len: usize, line_num: Option<usize>){
+pub fn write_result(handle: &mut StdoutLock<'static>, content: &[u8], matches: &Vec<usize>, match_len: usize, line_num: Option<usize>){
 
     // i: content iterrator, j is match iterator
     let mut i = 0_usize;
@@ -114,11 +73,24 @@ fn write_result(handle: &mut StdoutLock<'static>, content: &[u8], matches: &Vec<
 }
 
 // Returns tuple with (Content, Query)
-fn read_lines_from_file(path: &str) -> Lines<BufReader<File>> {
-    
+pub fn read_lines_from_file(path: &str) ->  Lines<BufReader<File>> {
+
     let file = File::open(path).unwrap();
 
     let buf = BufReader::new(file);
 
     buf.lines()
+    
+}
+
+pub fn read_lines_from_stdio() ->  Lines<StdinLock<'static>> {
+    let stdin = io::stdin();
+    stdin.lines()
+}
+
+pub fn read_lines(path: Option<&str>) -> InputLinesIterator{
+    match path {
+        Some(path) => InputLinesIterator::FileLines(read_lines_from_file(path)),
+        None => InputLinesIterator::StdioLines(read_lines_from_stdio())
+    }
 }
