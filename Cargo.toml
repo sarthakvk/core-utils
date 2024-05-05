@@ -2,7 +2,6 @@
 
 members = [
     "grepr",
-    "grepr_lib"
 ]
 
 resolver = "2"
