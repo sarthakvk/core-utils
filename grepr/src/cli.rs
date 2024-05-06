@@ -9,7 +9,8 @@ pub struct Args{
     /// input file path
     pub file: Option<String>,
 
-    /// Use exact match, without regular experessions
+    /// Use exact match, without regular experessions.
+    /// Uses Boyer-Moore pattern matching
     #[arg(short, long)]
     pub exact: bool
 }

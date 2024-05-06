@@ -1,5 +1,5 @@
 
-use std::io::Write;
+use std::{io::Write, process};
 use regex::Regex;
 
 use std::io;
@@ -30,7 +30,11 @@ pub fn regex_search(pat: &str, mut lines_iter: InputLinesIterator) {
                 }
                 line_num += 1;
             },
-            Err(err) => panic!("{}", err)
+            Err(err) => {
+                let mut stderr = io::stderr();
+                writeln!(stderr, "{}", err.to_string()).unwrap();
+                process::exit(1);
+            }
         }
     }
     handle.flush().unwrap();

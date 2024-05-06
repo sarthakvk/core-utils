@@ -2,30 +2,29 @@
 
 pub struct BoyerMoore;
 
-use std::io;
-use std::io::Write;
 use crate::io::{write_result, InputLinesIterator};
+use std::{io, process};
+use std::io::Write;
 
 const MAX_U8: usize = u8::MAX as usize;
 
 impl BoyerMoore {
     pub fn find_match(data: &[u8], query: &[u8]) -> Vec<usize> {
-        if query.len() == 0 || data.len() == 0 || query.len() > data.len(){
+        if query.len() == 0 || data.len() == 0 || query.len() > data.len() {
             return vec![];
         }
-        
+
         let query_size = query.len();
         let mut i = query_size - 1;
         let mut j = i;
         let delta1 = BoyerMoore::preprocess_delta1(query);
-        let mut matches:Vec<usize> = vec![];
-
+        let mut matches: Vec<usize> = vec![];
 
         while i < data.len() {
             if data[i] == query[j] {
                 if j == 0 {
                     matches.push(i);
-                    i += 2*query_size;
+                    i += 2 * query_size;
                     j = query_size;
                 }
                 i -= 1;
@@ -58,7 +57,7 @@ impl BoyerMoore {
 
     #[allow(dead_code)]
     #[allow(unused_variables)]
-    fn preprocess_delta2(query: &[u8]){
+    fn preprocess_delta2(query: &[u8]) {
         todo!();
     }
 }
@@ -76,13 +75,17 @@ pub fn bm_search(pat: &str, mut lines_iter: InputLinesIterator) {
             Ok(line) => {
                 let inp_bytes = line.as_bytes();
                 let res = BoyerMoore::find_match(inp_bytes, pat_bytes);
-                
+
                 if res.len() != 0 {
                     write_result(&mut handle, inp_bytes, &res, match_len, Some(line_num));
                 }
                 line_num += 1;
-            },
-            Err(err) => panic!("{}", err)            
+            }
+            Err(err) => {
+                let mut stderr = io::stderr();
+                writeln!(stderr, "{}", err.to_string()).unwrap();
+                process::exit(1);
+            }
         }
     }
 
@@ -140,5 +143,4 @@ mod tests {
         let matches = BoyerMoore::find_match(data, query);
         assert_eq!(matches, vec![]);
     }
-    
 }
